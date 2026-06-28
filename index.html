@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Valoraciones de Bases de la Música</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --text: #1f1f1f;
+      --muted: #666;
+      --line: #e6e6e6;
+      --soft: #f7f7f7;
+      --star: #111;
+      --accent: #111;
+      --bg: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .reviews-box {
+      max-width: 760px;
+      margin: 0 auto;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 22px;
+      background: #fff;
+    }
+
+    h2 {
+      margin: 0 0 6px;
+      font-size: 1.55rem;
+      letter-spacing: -0.02em;
+    }
+
+    .intro {
+      margin: 0 0 20px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: 150px 1fr;
+      gap: 22px;
+      align-items: center;
+      padding: 18px;
+      border-radius: 14px;
+      background: var(--soft);
+      margin-bottom: 24px;
+    }
+
+    .average {
+      text-align: center;
+    }
+
+    .average-number {
+      font-size: 2.1rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .average-stars {
+      font-size: 1.2rem;
+      margin: 8px 0;
+      letter-spacing: 1px;
+    }
+
+    .average-count {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .bars {
+      display: grid;
+      gap: 8px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 70px 1fr 42px;
+      gap: 10px;
+      align-items: center;
+      font-size: 0.92rem;
+    }
+
+    .bar-track {
+      height: 12px;
+      border-radius: 999px;
+      border: 1px solid #d5d5d5;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: 0%;
+      background: #111;
+    }
+
+    .form-box {
+      border-top: 1px solid var(--line);
+      padding-top: 22px;
+      margin-top: 10px;
+    }
+
+    .form-title {
+      font-size: 1.15rem;
+      font-weight: 750;
+      margin-bottom: 6px;
+    }
+
+    .form-help {
+      color: var(--muted);
+      margin-bottom: 14px;
+      line-height: 1.45;
+    }
+
+    .stars-input {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+      font-size: 2rem;
+      user-select: none;
+    }
+
+    .star-btn {
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      font-size: 2rem;
+      line-height: 1;
+      color: #b8b8b8;
+      padding: 0;
+      transition: transform 0.08s ease;
+    }
+
+    .star-btn:hover {
+      transform: scale(1.08);
+    }
+
+    .star-btn.active {
+      color: var(--star);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 92px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      font: inherit;
+      line-height: 1.45;
+      margin-bottom: 12px;
+    }
+
+    textarea:focus {
+      outline: 2px solid #111;
+      outline-offset: 2px;
+    }
+
+    .tiny-note {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 14px;
+      line-height: 1.35;
+    }
+
+    .honeypot {
+      display: none;
+    }
+
+    button.submit-btn {
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 18px;
+      background: var(--accent);
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    button.submit-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .message {
+      margin-top: 12px;
+      font-size: 0.94rem;
+      color: var(--muted);
+    }
+
+    .reviews-list {
+      border-top: 1px solid var(--line);
+      margin-top: 26px;
+      padding-top: 20px;
+    }
+
+    .reviews-list h3 {
+      margin: 0 0 14px;
+      font-size: 1.15rem;
+    }
+
+    .review-card {
+      border-bottom: 1px solid var(--line);
+      padding: 14px 0;
+    }
+
+    .review-stars {
+      font-size: 1rem;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+
+    .review-comment {
+      margin: 0 0 6px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+
+    .review-meta {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .empty {
+      color: var(--muted);
+      padding: 12px 0;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 12px;
+      }
+
+      .reviews-box {
+        padding: 18px;
+        border-radius: 14px;
+      }
+
+      .summary {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .average {
+        text-align: left;
+      }
+
+      .bar-row {
+        grid-template-columns: 68px 1fr 34px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <section class="reviews-box">
+    <h2>Valoraciones de Bases de la Música</h2>
+    <p class="intro">
+      ¿Te fue útil esta página? Deja tus estrellas y, si quieres, un comentario breve.
+    </p>
+
+    <div class="summary">
+      <div class="average">
+        <div class="average-number" id="averageNumber">0.0</div>
+        <div class="average-stars" id="averageStars">☆☆☆☆☆</div>
+        <div class="average-count" id="averageCount">Sin valoraciones todavía</div>
+      </div>
+
+      <div class="bars" id="bars"></div>
+    </div>
+
+    <div class="form-box">
+      <div class="form-title">Deja tu valoración</div>
+      <div class="form-help">
+        Toca las estrellas. El comentario es opcional.
+      </div>
+
+      <div class="stars-input" aria-label="Valoración con estrellas">
+        <button class="star-btn" data-value="1" aria-label="1 estrella">★</button>
+        <button class="star-btn" data-value="2" aria-label="2 estrellas">★</button>
+        <button class="star-btn" data-value="3" aria-label="3 estrellas">★</button>
+        <button class="star-btn" data-value="4" aria-label="4 estrellas">★</button>
+        <button class="star-btn" data-value="5" aria-label="5 estrellas">★</button>
+      </div>
+
+      <textarea id="comment" maxlength="600" placeholder="Comentario opcional: ¿qué te ayudó, qué te gustó o qué podría mejorar?"></textarea>
+
+      <input class="honeypot" id="website" type="text" autocomplete="off" tabindex="-1" />
+
+      <div class="tiny-note">
+        Las valoraciones se revisan antes de aparecer publicadas. Si no escribes comentario, solo se guardan tus estrellas.
+      </div>
+
+      <button class="submit-btn" id="submitBtn" disabled>Enviar valoración</button>
+      <div class="message" id="message"></div>
+    </div>
+
+    <div class="reviews-list">
+      <h3>Reseñas publicadas</h3>
+      <div id="reviewsList" class="empty">Cargando valoraciones...</div>
+    </div>
+  </section>
+
+  <script>
+    const SUPABASE_URL = "https://qunhjihpooriplnkibwd.supabase.co/rest/v1/";
+    const SUPABASE_KEY = "sb_publishable_vsb_JKOCTSIaUR4muhJF6Q_udkpeB0n";
+
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let selectedRating = 0;
+    let approvedReviews = [];
+
+    const starButtons = document.querySelectorAll(".star-btn");
+    const submitBtn = document.getElementById("submitBtn");
+    const commentEl = document.getElementById("comment");
+    const messageEl = document.getElementById("message");
+    const websiteEl = document.getElementById("website");
+
+    starButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        selectedRating = Number(btn.dataset.value);
+        updateStarInput();
+        submitBtn.disabled = false;
+      });
+    });
+
+    function updateStarInput() {
+      starButtons.forEach((btn) => {
+        const value = Number(btn.dataset.value);
+        btn.classList.toggle("active", value <= selectedRating);
+      });
+    }
+
+    function starsText(rating) {
+      const full = "★".repeat(rating);
+      const empty = "☆".repeat(5 - rating);
+      return full + empty;
+    }
+
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("es-SV", {
+        year: "numeric",
+        month: "short",
+        day: "numeric"
+      });
+    }
+
+    async function loadReviews() {
+      const { data, error } = await client
+        .from("site_reviews")
+        .select("rating, comment, created_at")
+        .eq("approved", true)
+        .eq("page", "bases-de-la-musica")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        document.getElementById("reviewsList").textContent =
+          "No se pudieron cargar las valoraciones.";
+        return;
+      }
+
+      approvedReviews = data || [];
+      renderSummary();
+      renderReviews();
+    }
+
+    function renderSummary() {
+      const total = approvedReviews.length;
+      const counts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+
+      approvedReviews.forEach((review) => {
+        counts[review.rating] += 1;
+      });
+
+      const sum = approvedReviews.reduce((acc, review) => acc + review.rating, 0);
+      const average = total ? sum / total : 0;
+
+      document.getElementById("averageNumber").textContent = total ? average.toFixed(1) : "0.0";
+      document.getElementById("averageStars").textContent = total
+        ? starsText(Math.round(average))
+        : "☆☆☆☆☆";
+
+      document.getElementById("averageCount").textContent = total === 0
+        ? "Sin valoraciones todavía"
+        : total === 1
+          ? "1 valoración aprobada"
+          : `${total} valoraciones aprobadas`;
+
+      const barsEl = document.getElementById("bars");
+      barsEl.innerHTML = "";
+
+      [5, 4, 3, 2, 1].forEach((rating) => {
+        const percent = total ? Math.round((counts[rating] / total) * 100) : 0;
+
+        const row = document.createElement("div");
+        row.className = "bar-row";
+        row.innerHTML = `
+          <div>${rating} ${rating === 1 ? "estrella" : "estrellas"}</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${percent}%"></div></div>
+          <div>${percent}%</div>
+        `;
+
+        barsEl.appendChild(row);
+      });
+    }
+
+    function renderReviews() {
+      const listEl = document.getElementById("reviewsList");
+
+      if (!approvedReviews.length) {
+        listEl.className = "empty";
+        listEl.textContent = "Todavía no hay reseñas publicadas.";
+        return;
+      }
+
+      listEl.className = "";
+      listEl.innerHTML = "";
+
+      approvedReviews.forEach((review) => {
+        const card = document.createElement("div");
+        card.className = "review-card";
+
+        const safeComment = review.comment && review.comment.trim()
+          ? review.comment.trim()
+          : "Sin comentario.";
+
+        card.innerHTML = `
+          <div class="review-stars">${starsText(review.rating)}</div>
+          <p class="review-comment">${escapeHtml(safeComment)}</p>
+          <div class="review-meta">Anónimo · ${formatDate(review.created_at)}</div>
+        `;
+
+        listEl.appendChild(card);
+      });
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    submitBtn.addEventListener("click", async () => {
+      if (!selectedRating) {
+        messageEl.textContent = "Primero toca una estrella para dejar tu valoración.";
+        return;
+      }
+
+      if (websiteEl.value.trim() !== "") {
+        messageEl.textContent = "Gracias por tu valoración.";
+        return;
+      }
+
+      submitBtn.disabled = true;
+      messageEl.textContent = "Enviando...";
+
+      const comment = commentEl.value.trim();
+
+      const { error } = await client
+        .from("site_reviews")
+        .insert({
+          rating: selectedRating,
+          comment: comment || null,
+          page: "bases-de-la-musica",
+          approved: false
+        });
+
+      if (error) {
+        messageEl.textContent = "No se pudo enviar la valoración. Intenta de nuevo.";
+        submitBtn.disabled = false;
+        return;
+      }
+
+      selectedRating = 0;
+      commentEl.value = "";
+      updateStarInput();
+
+      messageEl.textContent =
+        "Gracias. Tu valoración fue recibida y aparecerá cuando sea revisada.";
+    });
+
+    loadReviews();
+  </script>
+</body>
+</html>
