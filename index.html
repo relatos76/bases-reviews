@@ -376,10 +376,11 @@
         .order("created_at", { ascending: false });
 
       if (error) {
-        document.getElementById("reviewsList").textContent =
-          "No se pudieron cargar las valoraciones.";
-        return;
-      }
+  messageEl.textContent = "Error: " + error.message;
+  console.error(error);
+  submitBtn.disabled = false;
+  return;
+}
 
       approvedReviews = data || [];
       renderSummary();
