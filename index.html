@@ -14,7 +14,7 @@
       --muted: #666;
       --line: #e6e6e6;
       --soft: #f7f7f7;
-      --star: #111;
+      --star: #f5b301;
       --accent: #111;
       --bg: #ffffff;
     }
@@ -74,10 +74,11 @@
     }
 
     .average-stars {
-      font-size: 1.2rem;
-      margin: 8px 0;
-      letter-spacing: 1px;
-    }
+  font-size: 1.2rem;
+  margin: 8px 0;
+  letter-spacing: 1px;
+  color: var(--star);
+}
 
     .average-count {
       font-size: 0.9rem;
@@ -106,10 +107,10 @@
     }
 
     .bar-fill {
-      height: 100%;
-      width: 0%;
-      background: #111;
-    }
+  height: 100%;
+  width: 0%;
+  background: var(--star);
+}
 
     .form-box {
       border-top: 1px solid var(--line);
@@ -222,11 +223,12 @@
       padding: 14px 0;
     }
 
-    .review-stars {
-      font-size: 1rem;
-      letter-spacing: 1px;
-      margin-bottom: 6px;
-    }
+   .review-stars {
+  font-size: 1rem;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+  color: var(--star);
+}
 
     .review-comment {
       margin: 0 0 6px;
